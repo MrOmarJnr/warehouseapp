@@ -1,0 +1,137 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: companies
+    // Fields: name, code, type, email, phone, address, isActive, createdAt
+    //
+    // Collection: users
+    // Fields: companyId, role, firstName, lastName, email, phone, jobTitle, isActive, createdAt
+    //
+    // Collection: workOrders
+    // Fields: woNumber, createdBy, requesterCompanyId, serviceCompanyId, title, description, priority, category, currentStatus, ...
+    //
+    // [Subcollections under workOrders: items, history, comments, attachments, diagnosis, repair, parts, dispatch, inspection]
+    //
+    // Collection: notifications
+    // Fields: workOrderId, recipientUserId, channel, title, message, isRead, sentAt, readAt
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'SUPER_ADMIN') ||
+        (request.auth.token.email == "kwekuappiahjnr8@gmail.com" && request.auth.token.email_verified == true)
+      );
+    }
+
+    function isAtUser() {
+      let role = getUserData().role;
+      return isAuthenticated() && (role == 'AT_ADMIN' || role == 'AT_WAREHOUSE' || role == 'AT_INSPECTOR');
+    }
+
+    function isLefUser() {
+      let role = getUserData().role;
+      return isAuthenticated() && (role == 'LEF_ADMIN' || role == 'LEF_LOGISTICS' || role == 'LEF_TECHNICIAN');
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function validString(field, min, max) {
+      return request.resource.data[field] is string && 
+             request.resource.data[field].size() >= min && 
+             request.resource.data[field].size() <= max;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.firstName is string && data.firstName.size() > 0 &&
+             data.lastName is string && data.lastName.size() > 0 &&
+             data.email is string && data.role in ['SUPER_ADMIN', 'AT_ADMIN', 'AT_WAREHOUSE', 'AT_INSPECTOR', 'LEF_ADMIN', 'LEF_LOGISTICS', 'LEF_TECHNICIAN'];
+    }
+
+    function isValidWorkOrder(data) {
+      return data.woNumber is string && data.title is string && 
+             data.currentStatus in ['CREATED', 'ASSIGNED', 'PICKED_UP', 'IN_REPAIR', 'DIAGNOSED', 'REPAIRED', 'DISPATCHED', 'DELIVERED', 'ACCEPTED', 'REJECTED', 'CLOSED', 'REWORK'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /companies/{companyId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && (isAdmin() || isOwner(userId));
+      allow update: if isAuthenticated() && (isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role));
+    }
+
+    match /workOrders/{woId} {
+      allow read: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && isAtUser() && isValidWorkOrder(request.resource.data);
+      
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (isAtUser() && isValidWorkOrder(request.resource.data)) ||
+        (isLefUser() && isValidWorkOrder(request.resource.data))
+      );
+
+      // Subcollections
+      match /{subcollection}/{docId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+      }
+    }
+
+    match /activities/{activityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.recipientUserId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (resource.data.recipientUserId == request.auth.uid || isAdmin());
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

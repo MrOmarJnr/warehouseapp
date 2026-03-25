@@ -1,0 +1,236 @@
+{
+  "entities": {
+    "Company": {
+      "title": "Company",
+      "description": "Represents an organization (AT, LEF, etc.)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["AT", "LEF", "CLIENT", "VENDOR"] },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "code", "type"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Represents a user in the system",
+      "type": "object",
+      "properties": {
+        "companyId": { "type": "string" },
+        "role": { "type": "string", "enum": ["SUPER_ADMIN", "AT_ADMIN", "AT_WAREHOUSE", "AT_INSPECTOR", "LEF_ADMIN", "LEF_LOGISTICS", "LEF_TECHNICIAN"] },
+        "firstName": { "type": "string" },
+        "lastName": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "lastLoginAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["firstName", "lastName", "email", "role"]
+    },
+    "WorkOrder": {
+      "title": "Work Order",
+      "description": "Represents a repair request and its lifecycle",
+      "type": "object",
+      "properties": {
+        "woNumber": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "requesterCompanyId": { "type": "string" },
+        "serviceCompanyId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "priority": { "type": "string", "enum": ["LOW", "MEDIUM", "HIGH", "URGENT"] },
+        "category": { "type": "string" },
+        "currentStatus": { "type": "string", "enum": ["CREATED", "ASSIGNED", "PICKED_UP", "IN_REPAIR", "DIAGNOSED", "REPAIRED", "DISPATCHED", "DELIVERED", "ACCEPTED", "REJECTED", "CLOSED", "REWORK"] },
+        "pickupLocation": { "type": "string" },
+        "labLocation": { "type": "string" },
+        "returnLocation": { "type": "string" },
+        "assignedTo": { "type": "string" },
+        "requestedPickupDate": { "type": "string", "format": "date-time" },
+        "actualPickupDate": { "type": "string", "format": "date-time" },
+        "dispatchDate": { "type": "string", "format": "date-time" },
+        "deliveredDate": { "type": "string", "format": "date-time" },
+        "closedAt": { "type": "string", "format": "date-time" },
+        "rejectionCount": { "type": "integer" },
+        "isReworkRequired": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["woNumber", "createdBy", "requesterCompanyId", "serviceCompanyId", "title", "currentStatus"]
+    },
+    "WorkOrderItem": {
+      "title": "Work Order Item",
+      "description": "Specific items associated with a work order",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "itemName": { "type": "string" },
+        "itemCode": { "type": "string" },
+        "serialNumber": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "unit": { "type": "string" },
+        "itemCondition": { "type": "string" },
+        "itemDescription": { "type": "string" }
+      },
+      "required": ["workOrderId", "itemName"]
+    },
+    "WorkOrderStatusHistory": {
+      "title": "Status History",
+      "description": "Audit trail of status changes",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "previousStatus": { "type": "string" },
+        "newStatus": { "type": "string" },
+        "changedBy": { "type": "string" },
+        "changeNote": { "type": "string" },
+        "changedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "newStatus", "changedBy"]
+    },
+    "WorkOrderComment": {
+      "title": "Comment",
+      "description": "Comments and logs on a work order",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "userId": { "type": "string" },
+        "commentType": { "type": "string", "enum": ["GENERAL", "DIAGNOSIS", "REPAIR", "INSPECTION", "DISPATCH"] },
+        "commentText": { "type": "string" },
+        "isInternal": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "userId", "commentText"]
+    },
+    "WorkOrderAttachment": {
+      "title": "Attachment",
+      "description": "Files and photos attached to a work order",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "uploadedBy": { "type": "string" },
+        "attachmentType": { "type": "string", "enum": ["PICKUP_PHOTO", "REPAIR_PHOTO", "REPORT", "DELIVERY_NOTE", "INVOICE"] },
+        "fileName": { "type": "string" },
+        "filePath": { "type": "string" },
+        "mimeType": { "type": "string" },
+        "fileSize": { "type": "integer" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "uploadedBy", "attachmentType", "fileName", "filePath"]
+    },
+    "DiagnosisReport": {
+      "title": "Diagnosis Report",
+      "description": "Technical diagnosis of the issue",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "diagnosedBy": { "type": "string" },
+        "issueSummary": { "type": "string" },
+        "rootCause": { "type": "string" },
+        "findings": { "type": "string" },
+        "recommendations": { "type": "string" },
+        "estimatedCost": { "type": "number" },
+        "diagnosisDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "diagnosedBy", "issueSummary"]
+    },
+    "RepairReport": {
+      "title": "Repair Report",
+      "description": "Details of the repair actions taken",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "repairedBy": { "type": "string" },
+        "repairSummary": { "type": "string" },
+        "actionsTaken": { "type": "string" },
+        "testResults": { "type": "string" },
+        "repairStatus": { "type": "string", "enum": ["COMPLETED", "PARTIAL", "FAILED"] },
+        "repairDate": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "repairedBy", "repairSummary"]
+    },
+    "PartUsed": {
+      "title": "Part Used",
+      "description": "Parts consumed during repair",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "partName": { "type": "string" },
+        "partNumber": { "type": "string" },
+        "quantity": { "type": "integer" },
+        "unitCost": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "notes": { "type": "string" }
+      },
+      "required": ["workOrderId", "partName", "quantity"]
+    },
+    "DispatchDetail": {
+      "title": "Dispatch Detail",
+      "description": "Logistics information for returning the item",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "dispatchedBy": { "type": "string" },
+        "courierName": { "type": "string" },
+        "vehicleNumber": { "type": "string" },
+        "driverName": { "type": "string" },
+        "driverPhone": { "type": "string" },
+        "trackingReference": { "type": "string" },
+        "dispatchNote": { "type": "string" },
+        "dispatchedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "dispatchedBy"]
+    },
+    "InspectionReview": {
+      "title": "Inspection Review",
+      "description": "Final inspection by AT",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "inspectedBy": { "type": "string" },
+        "inspectionResult": { "type": "string", "enum": ["ACCEPTED", "REJECTED"] },
+        "inspectionNotes": { "type": "string" },
+        "inspectedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["workOrderId", "inspectedBy", "inspectionResult"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "In-app alerts for users",
+      "type": "object",
+      "properties": {
+        "workOrderId": { "type": "string" },
+        "recipientUserId": { "type": "string" },
+        "channel": { "type": "string", "enum": ["IN_APP", "EMAIL", "SMS", "WHATSAPP"] },
+        "title": { "type": "string" },
+        "message": { "type": "string" },
+        "isRead": { "type": "boolean" },
+        "sentAt": { "type": "string", "format": "date-time" },
+        "readAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["recipientUserId", "title", "message"]
+    }
+  },
+  "firestore": {
+    "/companies/{companyId}": { "schema": "Company", "description": "Organization details" },
+    "/users/{userId}": { "schema": "User", "description": "User profiles" },
+    "/workOrders/{woId}": { "schema": "WorkOrder", "description": "Main work order records" },
+    "/workOrders/{woId}/items/{itemId}": { "schema": "WorkOrderItem", "description": "Items in a work order" },
+    "/workOrders/{woId}/history/{historyId}": { "schema": "WorkOrderStatusHistory", "description": "Audit trail" },
+    "/workOrders/{woId}/comments/{commentId}": { "schema": "WorkOrderComment", "description": "Discussion and logs" },
+    "/workOrders/{woId}/attachments/{attachmentId}": { "schema": "WorkOrderAttachment", "description": "Photos and docs" },
+    "/workOrders/{woId}/diagnosis/{diagnosisId}": { "schema": "DiagnosisReport", "description": "Diagnosis details" },
+    "/workOrders/{woId}/repair/{repairId}": { "schema": "RepairReport", "description": "Repair details" },
+    "/workOrders/{woId}/parts/{partId}": { "schema": "PartUsed", "description": "Parts used" },
+    "/workOrders/{woId}/dispatch/{dispatchId}": { "schema": "DispatchDetail", "description": "Shipping info" },
+    "/workOrders/{woId}/inspection/{inspectionId}": { "schema": "InspectionReview", "description": "Final review" },
+    "/notifications/{notificationId}": { "schema": "Notification", "description": "User alerts" }
+  }
+}

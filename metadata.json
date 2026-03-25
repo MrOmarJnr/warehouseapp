@@ -1,0 +1,5 @@
+{
+  "name": "WorkOrder Pro",
+  "description": "A modern, multi-tenant Work Order Management System for collaborative item pickup, repair, and return between AT and LEF organizations.",
+  "requestFramePermissions": ["camera"]
+}
