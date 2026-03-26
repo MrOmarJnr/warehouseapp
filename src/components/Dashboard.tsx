@@ -30,7 +30,7 @@ export default function Dashboard({ user }: { user: User }) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user.firstName}</h1>
-          <p className="text-gray-500 mt-1">Check what is happening with your work orders today.</p>
+          <p className="text-gray-500 mt-1">Here's what's happening with your work orders today.</p>
         </div>
         <div className="flex gap-3">
           <button className="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
@@ -120,7 +120,9 @@ export default function Dashboard({ user }: { user: User }) {
               activities.map((activity, i) => (
                 <div key={i} className="flex gap-4 relative">
                   {i !== activities.length - 1 && <div className="absolute left-5 top-10 bottom-0 w-px bg-gray-100"></div>}
-                
+                  <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center shrink-0 z-10">
+                    <TrendingUp className="w-5 h-5 text-indigo-600" />
+                  </div>
                   <div>
                     <p className="text-sm text-gray-900">
                       <span className="font-bold">{activity.userName}</span> {activity.changeNote} 

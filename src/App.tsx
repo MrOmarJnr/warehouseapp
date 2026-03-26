@@ -20,8 +20,6 @@ import CreateWorkOrder from './components/CreateWorkOrder';
 import UserManagement from './components/UserManagement';
 import Login from './components/Login';
 import { User } from './types';
-import { auth } from './firebase';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { userService } from './services/userService';
 import { cn } from './lib/utils';
 
@@ -34,34 +32,27 @@ function AppContent() {
   const location = useLocation();
 
   useEffect(() => {
-    // Bootstrap admin if no users exist
-    userService.bootstrapAdmin().catch(console.error);
-
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
+    const checkAuth = async () => {
+      const userId = localStorage.getItem('userId');
+      if (userId) {
         try {
-          const userData = await userService.getUser(firebaseUser.uid);
+          const userData = await userService.getUser(userId);
           setUser(userData);
         } catch (error) {
           console.error('Error fetching user data:', error);
+          localStorage.removeItem('userId');
           setUser(null);
         }
-      } else {
-        setUser(null);
       }
       setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
+    checkAuth();
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  const handleLogout = () => {
+    localStorage.removeItem('userId');
+    setUser(null);
   };
 
   if (loading) {
@@ -97,7 +88,7 @@ function AppContent() {
             <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-100 shrink-0">
               <ClipboardList className="w-6 h-6 text-white" />
             </div>
-            {isSidebarOpen && <span className="text-xl font-bold text-gray-900 tracking-tight truncate">LEF Warehouse MS</span>}
+            {isSidebarOpen && <span className="text-xl font-bold text-gray-900 tracking-tight truncate">Logistics Hub</span>}
           </div>
 
           <nav className="flex-1 space-y-2">
@@ -162,7 +153,14 @@ function AppContent() {
             >
               <Menu className="w-6 h-6 text-gray-600" />
             </button>
-          
+            <div className="relative hidden md:block w-96">
+              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search anything..."
+                className="w-full pl-12 pr-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">

@@ -15,7 +15,7 @@ export default function CreateWorkOrder({ user }: { user: User }) {
     description: '',
     serialNumber: '',
     priority: 'MEDIUM' as WOPriority,
-    category: 'Board',
+    category: 'Electronics',
     pickupLocation: user.role.startsWith('AT') ? 'AT Warehouse A' : 'LEF LAB',
     labLocation: 'LEF LAB',
     returnLocation: user.role.startsWith('AT') ? 'AT Warehouse A' : 'LEF LAB',
@@ -160,9 +160,9 @@ export default function CreateWorkOrder({ user }: { user: User }) {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-4 py-3 bg-gray-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 transition-all"
               >
-                <option value="Board">Board</option>
-                <option value="Card">Card</option>
-                <option value="bburadio">BBU/Radio</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Mechanical">Mechanical</option>
+                <option value="IT Hardware">IT Hardware</option>
                 <option value="Other">Other</option>
               </select>
             </div>
